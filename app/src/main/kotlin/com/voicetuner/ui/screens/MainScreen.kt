@@ -105,7 +105,7 @@ fun MainScreen(
     LaunchedEffect(playCounter) {
         if (playCounter == 0) return@LaunchedEffect
         val note = lastPlayedNote ?: return@LaunchedEffect
-        if (hasPermission) pitchViewModel.onNotePlayed(note, onStopPlayback = { pianoViewModel.stopPlayback() })
+        if (hasPermission) pitchViewModel.onNotePlayed(note)
     }
 
     Column(

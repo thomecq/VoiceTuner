@@ -28,8 +28,10 @@ class PitchViewModel : ViewModel() {
     private val medianWindowSize = 5
 
     companion object {
-        const val DELAY_BEFORE_RECORDING_MS = 800L
-        const val RECORDING_DURATION_MS = 4000L
+        const val DELAY_BEFORE_RECORDING_MS = 1400L
+        const val RECORDING_DURATION_MS = 6000L
+        const val MIN_SINGING_DURATION_MS = 800L
+        const val SILENCE_AFTER_SINGING_MS = 500L
     }
 
     private val _isRecording = MutableStateFlow(false)
@@ -51,27 +53,24 @@ class PitchViewModel : ViewModel() {
     val toleranceCents: StateFlow<Float> = _toleranceCents.asStateFlow()
 
     private var currentTargetNote: Note? = null
+    private var singingStartTime: Long = 0L
+    private var lastPitchDetectedTime: Long = 0L
+    private var hasSungEnough: Boolean = false
+    private var silenceCheckJob: Job? = null
 
-    private var stopPlaybackCallback: (() -> Unit)? = null
-
-    fun onNotePlayed(targetNote: Note, onStopPlayback: (() -> Unit)? = null) {
+    fun onNotePlayed(targetNote: Note) {
         // Cancel any ongoing recording/waiting
         cancelAll()
 
         currentTargetNote = targetNote
-        stopPlaybackCallback = onStopPlayback
         _currentFeedback.value = null
         _currentPitchResult.value = null
         recentResults.clear()
 
-        // Wait for the piano sound to play, then stop it and start recording
+        // Wait for the piano sound to naturally decay, then start recording
         _isWaitingToRecord.value = true
         captureJob = viewModelScope.launch {
             delay(DELAY_BEFORE_RECORDING_MS)
-            // Stop piano playback before starting microphone capture
-            stopPlaybackCallback?.invoke()
-            // Short extra pause for audio to fully stop
-            delay(100L)
             _isWaitingToRecord.value = false
             startCapture(targetNote)
         }
@@ -79,8 +78,11 @@ class PitchViewModel : ViewModel() {
 
     private fun startCapture(targetNote: Note) {
         _isRecording.value = true
+        singingStartTime = 0L
+        lastPitchDetectedTime = 0L
+        hasSungEnough = false
 
-        // Auto-stop after duration
+        // Hard auto-stop after max duration
         autoStopJob = viewModelScope.launch {
             delay(RECORDING_DURATION_MS)
             finishRecording()
@@ -88,8 +90,24 @@ class PitchViewModel : ViewModel() {
 
         captureJob = viewModelScope.launch {
             microphoneCapture.startCapture().collect { buffer ->
+                val now = System.currentTimeMillis()
                 val result = pitchDetector.detect(buffer)
+
                 if (result != null && result.confidence > 0.5f) {
+                    // Pitch detected — user is singing
+                    if (singingStartTime == 0L) {
+                        singingStartTime = now
+                    }
+                    lastPitchDetectedTime = now
+
+                    // Check if sung long enough
+                    if (now - singingStartTime >= MIN_SINGING_DURATION_MS) {
+                        hasSungEnough = true
+                    }
+
+                    // Cancel any pending silence-finish
+                    silenceCheckJob?.cancel()
+
                     recentResults.add(result)
                     if (recentResults.size > medianWindowSize) {
                         recentResults.removeAt(0)
@@ -101,6 +119,15 @@ class PitchViewModel : ViewModel() {
                     if (smoothedResult != null) {
                         _currentFeedback.value = createFeedback(targetNote, smoothedResult)
                     }
+                } else if (hasSungEnough && lastPitchDetectedTime > 0L) {
+                    // No pitch detected and user already sang enough —
+                    // schedule finish after short silence
+                    if (silenceCheckJob?.isActive != true) {
+                        silenceCheckJob = viewModelScope.launch {
+                            delay(SILENCE_AFTER_SINGING_MS)
+                            finishRecording()
+                        }
+                    }
                 }
             }
         }
@@ -111,6 +138,8 @@ class PitchViewModel : ViewModel() {
         captureJob = null
         autoStopJob?.cancel()
         autoStopJob = null
+        silenceCheckJob?.cancel()
+        silenceCheckJob = null
         _isRecording.value = false
         _isWaitingToRecord.value = false
         microphoneCapture.stopCapture()
@@ -135,6 +164,8 @@ class PitchViewModel : ViewModel() {
         captureJob = null
         autoStopJob?.cancel()
         autoStopJob = null
+        silenceCheckJob?.cancel()
+        silenceCheckJob = null
         _isRecording.value = false
         _isWaitingToRecord.value = false
         microphoneCapture.stopCapture()
