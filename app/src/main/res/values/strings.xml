@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VoiceTuner</string>
+    <string name="play_note">Zagraj nut\u0119</string>
+    <string name="record">Nagraj</string>
+    <string name="stop">Stop</string>
+    <string name="too_low">Za nisko</string>
+    <string name="correct">Dobrze!</string>
+    <string name="too_high">Za wysoko</string>
+    <string name="difference">R\u00f3\u017cnica</string>
+    <string name="cents">cent\u00f3w</string>
+    <string name="semitones">p\u00f3\u0142ton\u00f3w</string>
+    <string name="played_note">Zagrana nuta</string>
+    <string name="your_note">Twoja nuta</string>
+    <string name="try_again">Spr\u00f3buj ponownie</string>
+    <string name="history">Historia</string>
+    <string name="settings">Ustawienia</string>
+    <string name="keyboard">Klawiatura</string>
+    <string name="tolerance">Tolerancja</string>
+    <string name="single_note">Pojedyncza nuta</string>
+    <string name="chord_mode">Tryb akordowy</string>
+    <string name="microphone_permission_needed">Potrzebne uprawnienie do mikrofonu</string>
+    <string name="grant_permission">Przyznaj uprawnienie</string>
+    <string name="no_attempts_yet">Brak pr\u00f3b</string>
+    <string name="target_note">Nuta docelowa</string>
+    <string name="detected_note">Wykryta nuta</string>
+    <string name="accuracy">Celno\u015b\u0107</string>
+    <string name="listening">S\u0142ucham\u2026</string>
+    <string name="tap_key_to_start">Naci\u015bnij klawisz, aby zagra\u0107</string>
+    <string name="get_ready">Przygotuj si\u0119 do \u015bpiewania\u2026</string>
+</resources>
