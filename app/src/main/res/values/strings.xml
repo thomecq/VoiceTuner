@@ -28,4 +28,36 @@
     <string name="listening">S\u0142ucham\u2026</string>
     <string name="tap_key_to_start">Naci\u015bnij klawisz, aby zagra\u0107</string>
     <string name="get_ready">Przygotuj si\u0119 do \u015bpiewania\u2026</string>
+
+    <!-- Game mode -->
+    <string name="game">Gra</string>
+    <string name="game_single_notes">Pojedyncze nuty</string>
+    <string name="game_chords">Akordy</string>
+    <string name="game_easy">\u0141atwy</string>
+    <string name="game_standard">Standardowy</string>
+    <string name="start_game">Rozpocznij gr\u0119</string>
+    <string name="round_of">Runda %1$d / %2$d</string>
+    <string name="points">pkt</string>
+    <string name="listen_now">Pos\u0142uchaj\u2026</string>
+    <string name="listen_chord">Pos\u0142uchaj akordu\u2026</string>
+    <string name="sing_now">\u015apiewaj\u2026</string>
+    <string name="sing_note_of">Za\u015bpiewaj nut\u0119 %1$d z %2$d</string>
+    <string name="how_many_notes">Ile d\u017awi\u0119k\u00f3w us\u0142ysza\u0142e\u015b?</string>
+    <string name="replay">Powt\u00f3rz</string>
+    <string name="next_round">Dalej</string>
+    <string name="final_score">Wynik ko\u0144cowy</string>
+    <string name="play_again">Zagraj ponownie</string>
+    <string name="go_back">Powr\u00f3t</string>
+    <string name="accurate_notes">Celne nuty</string>
+    <string name="avg_error">\u015aredni b\u0142\u0105d</string>
+    <string name="best_note">Najlepsza nuta</string>
+    <string name="longest_streak">Najd\u0142u\u017csza seria</string>
+    <string name="streak_bonus">Seria! +%1$d bonus</string>
+    <string name="played">Zagrano</string>
+    <string name="sung">Za\u015bpiewano</string>
+    <string name="note_count_correct">Liczba nut: trafiona!</string>
+    <string name="note_count_wrong">Liczba nut: nietrafiona</string>
+    <string name="difficulty">Poziom trudno\u015bci</string>
+    <string name="game_type">Typ gry</string>
+    <string name="octave_range">Zakres oktaw</string>
 </resources>

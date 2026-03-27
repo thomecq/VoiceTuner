@@ -25,6 +25,7 @@ class PitchViewModel : ViewModel() {
     private var autoStopJob: Job? = null
 
     private val recentResults = mutableListOf<PitchResult>()
+    private val allSessionResults = mutableListOf<PitchResult>()
     private val medianWindowSize = 5
 
     companion object {
@@ -66,6 +67,7 @@ class PitchViewModel : ViewModel() {
         _currentFeedback.value = null
         _currentPitchResult.value = null
         recentResults.clear()
+        allSessionResults.clear()
 
         // Wait for the piano sound to naturally decay, then start recording
         _isWaitingToRecord.value = true
@@ -108,6 +110,8 @@ class PitchViewModel : ViewModel() {
                     // Cancel any pending silence-finish
                     silenceCheckJob?.cancel()
 
+                    allSessionResults.add(result)
+
                     recentResults.add(result)
                     if (recentResults.size > medianWindowSize) {
                         recentResults.removeAt(0)
@@ -144,16 +148,25 @@ class PitchViewModel : ViewModel() {
         _isWaitingToRecord.value = false
         microphoneCapture.stopCapture()
 
-        val feedback = _currentFeedback.value
-        val target = currentTargetNote
-        if (feedback != null && target != null) {
+        val target = currentTargetNote ?: return
+
+        // Use stable result from entire session instead of last reading
+        val stableResult = stableSessionResult(allSessionResults)
+        val finalFeedback = if (stableResult != null) {
+            createFeedback(target, stableResult)
+        } else {
+            _currentFeedback.value
+        }
+
+        if (finalFeedback != null) {
+            _currentFeedback.value = finalFeedback
             val record = AttemptRecord(
                 timestamp = System.currentTimeMillis(),
                 targetNote = target,
-                detectedNote = feedback.detectedNote,
-                centsOffset = feedback.centsOffset,
-                accuracy = feedback.accuracy,
-                isInTune = feedback.isInTune
+                detectedNote = finalFeedback.detectedNote,
+                centsOffset = finalFeedback.centsOffset,
+                accuracy = finalFeedback.accuracy,
+                isInTune = finalFeedback.isInTune
             )
             _attemptHistory.value = listOf(record) + _attemptHistory.value
         }
@@ -179,6 +192,7 @@ class PitchViewModel : ViewModel() {
         _currentFeedback.value = null
         _currentPitchResult.value = null
         recentResults.clear()
+        allSessionResults.clear()
     }
 
     private fun createFeedback(targetNote: Note, result: PitchResult): PitchFeedback {
@@ -202,6 +216,22 @@ class PitchViewModel : ViewModel() {
             accuracy = accuracy,
             isInTune = accuracy == Accuracy.CORRECT
         )
+    }
+
+    /**
+     * Trimmed median of all session results — drops top and bottom 20%
+     * to eliminate voice cracks, onset noise, and trailing artifacts.
+     */
+    private fun stableSessionResult(results: List<PitchResult>): PitchResult? {
+        if (results.isEmpty()) return null
+        if (results.size < 4) return medianSmooth(results)
+
+        val sorted = results.sortedBy { it.frequency }
+        val trimCount = (sorted.size * 0.2f).toInt().coerceAtLeast(1)
+        val trimmed = sorted.subList(trimCount, sorted.size - trimCount)
+        if (trimmed.isEmpty()) return medianSmooth(results)
+
+        return trimmed[trimmed.size / 2]
     }
 
     private fun medianSmooth(results: List<PitchResult>): PitchResult? {

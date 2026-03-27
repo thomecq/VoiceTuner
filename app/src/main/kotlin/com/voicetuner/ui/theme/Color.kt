@@ -40,3 +40,7 @@ val KeyPressedBlack = Color(0xFF6C63FF)
 // Gradient colors
 val GradientStart = Color(0xFF6C63FF)
 val GradientEnd = Color(0xFF4ECDC4)
+
+// Game mode colors
+val GoldStar = Color(0xFFFFD700)
+val GoldStarLight = Color(0xFFFFF8E1)
